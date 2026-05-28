@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         DGUT求是读书-全自动阅读助手
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/vanilla1108/DGUT-Reading-Helper
 // @version      3.2.1
 // @license MIT
 // @description  DGUT莞工求是读书计划自动阅读助手 — 获取优学院真实阅读时长、自动翻页/章节
