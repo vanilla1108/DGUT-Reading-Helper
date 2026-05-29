@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         DGUT求是读书-全自动阅读助手
-// @namespace    http://tampermonkey.net/
-// @version      3.2.1
+// @name         DGUT求是读书-自动阅读助手
+// @namespace    https://github.com/vanilla1108/DGUT-Reading-Helper
+// @version      3.3.0
 // @license MIT
 // @description  DGUT莞工求是读书计划自动阅读助手 — 获取优学院真实阅读时长、自动翻页/章节
 // @author       vanilla、DeepSeek
@@ -20,9 +20,12 @@
     const PAGE_WIN = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
 
     const HOST_RE = /^https:\/\/ua\.dgut\.edu\.cn\/learnCourse\/learnCourse\.html\?.*/i;
+    const HOST_ORIGIN = 'https://ua.dgut.edu.cn';
     const KEY = 'dgut_single_file_helper_config';
     const RECORDS_KEY = 'dgut_reading_records';
     const MSG = 'DGUT_SINGLE_FILE_READER_SYNC';
+    const READY_MSG = 'DGUT_SINGLE_FILE_READER_READY';
+    const READER_SCOPE = 'DGUT_LEARNCOURSE_READER';
     const SAVE_INTERVAL = 30;
     const D = { posX:20, posY:120, readerSec:30, readerAutoStart:true };
     const MIN_BOOK_SEC = 4 * 3600 + 10;
@@ -215,7 +218,9 @@
         }
 
         document.head.appendChild(Object.assign(document.createElement('style'), {
-            textContent: '#dgut-single-helper-panel{background:rgba(28,28,30,.82);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);color:#e5e5e7;padding:0;border-radius:16px;position:fixed;z-index:100000;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;min-width:230px;box-shadow:0 12px 40px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.08);user-select:none;overflow:hidden}#dgut-drag-handle{cursor:move;padding:9px 14px;background:rgba(255,255,255,.04);border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;gap:8px}#dgut-drag-handle h4{margin:0;background:linear-gradient(90deg,#007aff,#34c759);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}#dgut-collapse-btn{cursor:pointer;font-size:14px;font-weight:700;color:rgba(255,255,255,.4);width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:5px;transition:background .15s,color .15s}#dgut-collapse-btn:hover{background:rgba(255,255,255,.1);color:#fff}#dgut-single-helper-panel.collapsed{min-width:200px}#dgut-single-helper-panel.collapsed .dgut-panel-body>:not(#timer-display):not(#progress-bar-wrap):not(#btn-pause-wrap){display:none}#dgut-single-helper-panel.collapsed .dgut-panel-body{padding:12px}#dgut-single-helper-panel.collapsed #timer-display{font-size:28px;margin:0 0 6px}#dgut-single-helper-panel.collapsed #btn-pause-wrap{margin-bottom:0;margin-top:8px}#dgut-single-helper-panel.collapsed .dgut-btn-primary{height:30px;font-size:12px}.dgut-panel-body{padding:14px}#timer-display{font-weight:800;color:#fff;font-size:34px;font-variant-numeric:tabular-nums;letter-spacing:1px;line-height:1;text-align:center;margin:2px 0 8px;text-shadow:0 2px 12px rgba(0,122,255,.3)}#progress-bar-wrap{height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin:6px 0;overflow:hidden}#progress-bar-fill{height:100%;background:linear-gradient(90deg,#007aff,#34c759);border-radius:2px;transition:width .6s cubic-bezier(.34,1.56,.64,1);box-shadow:0 0 8px rgba(0,122,255,.3)}#progress-text{font-size:10px;font-weight:600;color:rgba(255,255,255,.4);text-align:center;margin-bottom:8px}#book-name-display{font-size:11px;color:rgba(255,255,255,.55);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;margin-bottom:10px;padding:3px 8px;background:rgba(255,255,255,.03);border-radius:6px}#btn-pause-wrap{margin-bottom:12px}.dgut-btn{border:none;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;justify-content:center;outline:0}.dgut-btn:hover{filter:brightness(1.08)}.dgut-btn:active{transform:scale(.97)}.dgut-btn-primary{color:#fff;width:100%;height:36px;background:linear-gradient(135deg,#43e97b,#38f9d7);box-shadow:0 4px 12px rgba(67,233,123,.25)}.dgut-btn-ghost{color:rgba(255,255,255,.85);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);height:24px;padding:0 10px;font-size:11px;font-weight:500}.dgut-btn-ghost:hover{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.2)}#auto-row,#server-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:11px;color:rgba(255,255,255,.5)}#server-row #server-time-display{flex:1;min-width:0}#auto-row .row-label{color:rgba(255,255,255,.4);font-size:11px;flex-shrink:0}#auto-row .row-unit{font-size:11px;color:rgba(255,255,255,.4);margin-right:auto}#reader-sec{width:42px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.1);border-radius:5px;color:#fff;text-align:center;padding:3px;font-size:12px;outline:0;transition:border-color .15s}#reader-sec:focus{border-color:#007aff}#reader-status{display:flex;align-items:center;gap:6px;font-size:10px;color:rgba(255,255,255,.4);margin-bottom:10px}#status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#ffcc80}#status-dot.active{background:#34c759;box-shadow:0 0 6px #34c759;animation:dgut-pulse 2s infinite}@keyframes dgut-pulse{0%,100%{opacity:1}50%{opacity:.5}}#dgut-log-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:6px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06)}#dgut-log-title{font-size:10px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.5px;font-weight:700}#dgut-log-toggle{font-size:10px;color:rgba(255,255,255,.25)}#dgut-log-container{height:90px;overflow-y:auto;background:rgba(0,0,0,.22);border-radius:7px;padding:6px 8px;font-size:10px;font-family:Consolas,monospace;line-height:1.5;scrollbar-width:thin;transition:all .25s ease}#dgut-log-container.collapsed{height:0;padding:0;opacity:0;overflow:hidden}#dgut-log-container::-webkit-scrollbar{width:4px}#dgut-log-container::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}.dgut-log-line{padding:1px 0;color:rgba(255,255,255,.55)}.dgut-log-time{color:rgba(255,255,255,.18);margin-right:6px}'
+            /* !important 在 #dgut-log-container / .dgut-log-line 的 padding 上，
+               用于抵御宿主页面 CSS reset 导致日志圆点压时间戳的 bug — 勿删勿改。 */
+            textContent: '#dgut-single-helper-panel{box-sizing:border-box;background:rgba(28,28,30,.82);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);color:#e5e5e7;padding:0;border-radius:16px;position:fixed;z-index:100000;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;width:300px;max-width:calc(100vw - 32px);box-shadow:0 12px 40px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.08);user-select:none;overflow:hidden}#dgut-single-helper-panel *{box-sizing:border-box}#dgut-drag-handle{cursor:move;padding:11px 14px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;gap:8px}#dgut-title-wrap{display:flex;align-items:center;gap:7px;min-width:0}#dgut-brand-dot{width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,#0a84ff,#34c759);box-shadow:0 0 7px rgba(52,199,89,.6);flex-shrink:0}#dgut-drag-handle h4{margin:0;background:linear-gradient(90deg,#0a84ff,#34c759);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:12px;font-weight:800;letter-spacing:.3px;white-space:nowrap}#dgut-collapse-btn{cursor:pointer;font-size:14px;font-weight:700;color:rgba(255,255,255,.4);width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:background .15s,color .15s}#dgut-collapse-btn:hover{background:rgba(255,255,255,.1);color:#fff}#dgut-single-helper-panel.collapsed{width:210px}#dgut-single-helper-panel.collapsed .dgut-panel-body>:not(#timer-display):not(#progress-bar-wrap):not(#btn-pause-wrap):not(#meter-row){display:none}#dgut-single-helper-panel.collapsed .dgut-panel-body{padding:12px}#dgut-single-helper-panel.collapsed #timer-display{font-size:28px;margin:0 0 6px}#dgut-single-helper-panel.collapsed #meter-row{margin-bottom:6px}#dgut-single-helper-panel.collapsed #btn-pause-wrap{margin-bottom:0;margin-top:8px}#dgut-single-helper-panel.collapsed .dgut-btn-primary{height:30px;font-size:12px}.dgut-panel-body{padding:16px}#timer-display{font-weight:800;color:#fff;font-size:36px;font-variant-numeric:tabular-nums;letter-spacing:2px;line-height:1;text-align:center;margin:4px 0 9px;text-shadow:0 2px 16px rgba(10,132,255,.35)}#meter-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 7px;padding:0 1px}#reader-status{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.6);min-width:0}#status-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#ffcc80;box-shadow:0 0 6px rgba(255,204,128,.5)}#status-dot.active{background:#34c759;box-shadow:0 0 6px #34c759;animation:dgut-pulse 2s infinite}@keyframes dgut-pulse{0%,100%{opacity:1}50%{opacity:.5}}#progress-text{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.3px;flex-shrink:0;font-variant-numeric:tabular-nums}#progress-bar-wrap{position:relative;height:6px;background:rgba(255,255,255,.08);border-radius:99px;margin:0 0 14px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.35)}#progress-bar-fill{height:100%;background:linear-gradient(90deg,#0a84ff,#34c759);border-radius:99px;transition:width .6s cubic-bezier(.34,1.56,.64,1);box-shadow:0 0 10px rgba(52,199,89,.45)}#book-name-display{font-size:11px;color:rgba(255,255,255,.62);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;margin-bottom:14px;padding:6px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:8px}#btn-pause-wrap{margin-bottom:14px}.dgut-btn{border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;justify-content:center;outline:0}.dgut-btn:hover{filter:brightness(1.08)}.dgut-btn:active{transform:scale(.97)}.dgut-btn-primary{color:#fff;width:100%;height:38px;font-size:14px;font-weight:700;letter-spacing:.5px;background:linear-gradient(135deg,#0a84ff,#34c759);box-shadow:0 6px 16px rgba(10,132,255,.3)}.dgut-btn-ghost{color:rgba(255,255,255,.85);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;height:28px;padding:0 14px;font-size:11px;font-weight:500}.dgut-btn-ghost:hover{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.2)}#auto-row,#server-row{display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,.5)}#auto-row{margin-bottom:10px}#server-row{margin-bottom:12px}#server-row #server-time-display{flex:1;min-width:0}#auto-row .row-label{color:rgba(255,255,255,.45);font-size:11px;flex-shrink:0}#auto-row .row-unit{font-size:11px;color:rgba(255,255,255,.4);margin-right:auto}#reader-sec{width:46px;height:28px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;text-align:center;padding:3px;font-size:12px;font-variant-numeric:tabular-nums;outline:0;transition:border-color .15s}#reader-sec:focus{border-color:#007aff}#dgut-log-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:8px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07)}#dgut-log-title{font-size:10px;color:rgba(255,255,255,.42);text-transform:uppercase;letter-spacing:.8px;font-weight:700}#dgut-log-toggle{font-size:9px;color:rgba(255,255,255,.3)}#dgut-log-container{height:96px;overflow-y:auto;overflow-x:hidden;background:rgba(0,0,0,.28);border-radius:8px;padding:6px!important;font-size:10px;line-height:1.5;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent;transition:height .25s ease,opacity .25s ease,padding .25s ease}#dgut-log-container.collapsed{height:0;padding:0;opacity:0;overflow:hidden}#dgut-log-container::-webkit-scrollbar{width:5px}#dgut-log-container::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}#dgut-log-container::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.22)}.dgut-log-line{position:relative;display:flex;gap:7px;align-items:flex-start;padding:2px 6px 2px 16px!important;border-radius:5px;line-height:1.5;color:rgba(255,255,255,.62);transition:background .12s}.dgut-log-line+.dgut-log-line{margin-top:1px}.dgut-log-line:hover{background:rgba(255,255,255,.05)}.dgut-log-line::before{content:"";position:absolute;left:6px;top:7px;width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.22)}.dgut-log-line.ok::before{background:#34c759;box-shadow:0 0 4px rgba(52,199,89,.5)}.dgut-log-line.ok .dgut-log-msg{color:#7ee2a0}.dgut-log-line.nav::before{background:#0a84ff;box-shadow:0 0 4px rgba(10,132,255,.5)}.dgut-log-line.nav .dgut-log-msg{color:#74bbff}.dgut-log-line.warn::before{background:#ff9f0a;box-shadow:0 0 4px rgba(255,159,10,.5)}.dgut-log-line.warn .dgut-log-msg{color:#ffc673}.dgut-log-time{flex-shrink:0;color:rgba(255,255,255,.3);font-family:Consolas,"SF Mono",monospace;font-variant-numeric:tabular-nums;letter-spacing:-.2px}.dgut-log-msg{flex:1;min-width:0;word-break:break-word;overflow-wrap:anywhere}'
         }));
 
         const p = Object.assign(document.createElement('div'), {
@@ -223,13 +228,16 @@
             style: `top:${cfg.posY}px;right:${cfg.posX}px`
         });
         p.innerHTML = `<div id="dgut-drag-handle">
-  <h4>DGUT 求是阅读助手</h4>
+  <div id="dgut-title-wrap"><span id="dgut-brand-dot"></span><h4>DGUT 求是阅读助手</h4></div>
   <span id="dgut-collapse-btn" title="折叠/展开">−</span>
 </div>
 <div class="dgut-panel-body">
   <div id="timer-display">${fmt(accumulated)}</div>
+  <div id="meter-row">
+    <span id="reader-status"><span id="status-dot"></span><span id="status-text">就绪</span></span>
+    <span id="progress-text">0%</span>
+  </div>
   <div id="progress-bar-wrap"><div id="progress-bar-fill" style="width:0%"></div></div>
-  <div id="progress-text">0%</div>
   <div id="book-name-display" title="${bookKey}">${getBookDisplayName()}</div>
   <div id="btn-pause-wrap">
     <button id="btn-pause" class="dgut-btn dgut-btn-primary">开始</button>
@@ -240,7 +248,6 @@
     <span class="row-unit">秒/页</span>
     <button id="btn-apply-reader" class="dgut-btn dgut-btn-ghost">保存</button>
   </div>
-  <div id="reader-status"><span id="status-dot"></span><span id="status-text">就绪</span></div>
   <div id="server-row">
     <span id="server-time-display">服务端: --</span>
     <button id="btn-sync-server" class="dgut-btn dgut-btn-ghost">同步</button>
@@ -267,14 +274,21 @@
             if (st) st.textContent = t;
             if (dot) { dot.style.background = c || '#ffcc80'; dot.className = c === '#34c759' ? 'active' : ''; }
         }
+        function logType(msg) {
+            if (/失败|错误|出错|未收到|无法|异常|未满/.test(msg)) return 'warn';
+            if (/已满4h|同步|存档|读完|启动|握手|连接|最新|已设为/.test(msg)) return 'ok';
+            if (/翻页|切换|下一页|下一节|下一章|下一本|回到第一页|停留|留在/.test(msg)) return 'nav';
+            return '';
+        }
         function log(msg) {
             const c = document.getElementById('dgut-log-container');
             if(!c) return;
             const n = new Date();
             const t = `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`;
+            const cls = logType(msg);
             const l = document.createElement('div');
-            l.className = 'dgut-log-line';
-            l.innerHTML = `<span class="dgut-log-time">[${t}]</span>${msg}`;
+            l.className = 'dgut-log-line' + (cls ? ' ' + cls : '');
+            l.innerHTML = `<span class="dgut-log-time">${t}</span><span class="dgut-log-msg">${msg}</span>`;
             c.appendChild(l);
             c.scrollTop = c.scrollHeight;
             while(c.children.length > 100) c.removeChild(c.firstChild);
@@ -291,16 +305,33 @@
         function getTotal() { return accumulated + Math.floor((Date.now() - sessionStart) / 1000); }
         function persist() { const t = getTotal(); setBookTime(bookKey, t); lastSave = t; log('存档：' + fmt(t)); }
 
-        function syncReader() {
+        function syncReader(targetWin) {
             saveCfg();
-            const payload = { type: MSG, intervalSec: cfg.readerSec, autoStart: cfg.readerAutoStart };
+            const payload = {
+                type: MSG,
+                scope: READER_SCOPE,
+                intervalSec: cfg.readerSec,
+                autoStart: cfg.readerAutoStart
+            };
             let n = 0;
-            Array.from(document.querySelectorAll('iframe')).forEach(f => {
-                try { if(f.contentWindow){ f.contentWindow.postMessage(payload, '*'); n++; } } catch(e) {}
-            });
+            if (targetWin) {
+                try {
+                    targetWin.postMessage(payload, '*');
+                    n = 1;
+                } catch(e) {}
+            } else {
+                Array.from(document.querySelectorAll('iframe')).forEach(f => {
+                    try {
+                        if(f.contentWindow){
+                            f.contentWindow.postMessage(payload, '*');
+                            n++;
+                        }
+                    } catch(e) {}
+                });
+            }
             let txt;
             if (n > 0) {
-                txt = cfg.readerAutoStart ? '阅读中·'+cfg.readerSec+'秒/页' : '已暂停·'+cfg.readerSec+'秒/页';
+                txt = cfg.readerAutoStart ? '阅读中' : '已暂停';
             } else {
                 txt = '等待阅读器连接';
             }
@@ -640,8 +671,14 @@
         }
         syncReader();
         window.addEventListener('message', function(e) {
-            if (e.data && e.data.type === 'DGUT_LOG') {
+            if (!e.data) return;
+            if (e.data.type === 'DGUT_LOG') {
                 log('[iframe] ' + e.data.text);
+                return;
+            }
+            if (e.data.type === READY_MSG) {
+                syncReader(e.source);
+                log('[iframe] 阅读器已握手');
             }
         });
         setupAntiDetect();
@@ -671,7 +708,7 @@
     function initReader() {
         if(window.__DGUT_SINGLE_FILE_READER_INITED__) return;
         window.__DGUT_SINGLE_FILE_READER_INITED__ = true;
-        let timer = null, state, lastFlipLogAt = 0, lastLoopBack = 0;
+        let timer = null, state, lastFlipLogAt = 0, lastLoopBack = 0, synced = false, readyTimer = null;
         const LOG = 'DGUT_LOG';
 
         function rlog(msg) {
@@ -717,10 +754,23 @@
         function stop() { if(!timer) return; clearInterval(timer); timer = null; rlog('翻页定时器已停止'); }
         function start(s) { if(timer) return; timer = setInterval(clickNext, s*1000); rlog('翻页定时器已启动：' + s + '秒/页'); }
         function apply(s, auto) { stop(); if(auto!==false) start(s); }
+        function stopReadyPing() {
+            if (!readyTimer) return;
+            clearInterval(readyTimer);
+            readyTimer = null;
+        }
+        function notifyReady() {
+            if (window.parent === window) return;
+            try {
+                window.parent.postMessage({ type: READY_MSG, scope: READER_SCOPE }, '*');
+            } catch(e) {}
+        }
 
         window.addEventListener('message', e => {
             const d = e.data;
-            if(!d||d.type!==MSG) return;
+            if(!d || d.type !== MSG || d.scope !== READER_SCOPE || e.origin !== HOST_ORIGIN) return;
+            synced = true;
+            stopReadyPing();
             state = readCfg();
             const sec = parseInt(d.intervalSec, 10);
             state.readerSec = sec > 0 ? sec : D.readerSec;
@@ -730,18 +780,33 @@
             apply(state.readerSec, state.readerAutoStart);
         });
 
-        function tryStart() {
-            state = readCfg();
-            apply(state.readerSec, state.readerAutoStart);
+        function tryHandshake() {
+            if (window.parent === window || synced) return;
+            notifyReady();
+            if (readyTimer) return;
+            let tries = 0;
+            readyTimer = setInterval(function() {
+                if (synced || window.parent === window) {
+                    stopReadyPing();
+                    return;
+                }
+                tries++;
+                notifyReady();
+                if (tries >= 20) {
+                    stopReadyPing();
+                    rlog('未收到宿主同步，当前阅读器不启用自动翻页');
+                }
+            }, 1000);
         }
         if (document.readyState === 'complete') {
-            setTimeout(tryStart, 500);
+            setTimeout(tryHandshake, 500);
         } else {
-            window.addEventListener('load', () => setTimeout(tryStart, 1200), { once: true });
+            window.addEventListener('load', () => setTimeout(tryHandshake, 1200), { once: true });
         }
     }
 
     function bootstrapReader() {
+        if (window.top === window.self) return;
         const init = () => document.querySelector('#nextBtn') ? (initReader(), true) : false;
         if(init()) { console.log('[DGUT Reader] 阅读器已连接'); return; }
         let n = 0, t = setInterval(() => { n++; if(init()||n>=20) clearInterval(t); }, 500);
