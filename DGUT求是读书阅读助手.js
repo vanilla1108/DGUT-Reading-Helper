@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         DGUT求是读书-自动阅读助手
+// @name         DGUT求是读书阅读助手
 // @namespace    https://github.com/vanilla1108/DGUT-Reading-Helper
-// @version      3.3.0
+// @version      3.3.1
 // @license MIT
 // @description  DGUT莞工求是读书计划自动阅读助手 — 获取优学院真实阅读时长、自动翻页/章节
 // @author       vanilla、DeepSeek
@@ -218,9 +218,75 @@
         }
 
         document.head.appendChild(Object.assign(document.createElement('style'), {
-            /* !important 在 #dgut-log-container / .dgut-log-line 的 padding 上，
-               用于抵御宿主页面 CSS reset 导致日志圆点压时间戳的 bug — 勿删勿改。 */
-            textContent: '#dgut-single-helper-panel{box-sizing:border-box;background:rgba(28,28,30,.82);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);color:#e5e5e7;padding:0;border-radius:16px;position:fixed;z-index:100000;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;width:300px;max-width:calc(100vw - 32px);box-shadow:0 12px 40px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.08);user-select:none;overflow:hidden}#dgut-single-helper-panel *{box-sizing:border-box}#dgut-drag-handle{cursor:move;padding:11px 14px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;gap:8px}#dgut-title-wrap{display:flex;align-items:center;gap:7px;min-width:0}#dgut-brand-dot{width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,#0a84ff,#34c759);box-shadow:0 0 7px rgba(52,199,89,.6);flex-shrink:0}#dgut-drag-handle h4{margin:0;background:linear-gradient(90deg,#0a84ff,#34c759);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:12px;font-weight:800;letter-spacing:.3px;white-space:nowrap}#dgut-collapse-btn{cursor:pointer;font-size:14px;font-weight:700;color:rgba(255,255,255,.4);width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:background .15s,color .15s}#dgut-collapse-btn:hover{background:rgba(255,255,255,.1);color:#fff}#dgut-single-helper-panel.collapsed{width:210px}#dgut-single-helper-panel.collapsed .dgut-panel-body>:not(#timer-display):not(#progress-bar-wrap):not(#btn-pause-wrap):not(#meter-row){display:none}#dgut-single-helper-panel.collapsed .dgut-panel-body{padding:12px}#dgut-single-helper-panel.collapsed #timer-display{font-size:28px;margin:0 0 6px}#dgut-single-helper-panel.collapsed #meter-row{margin-bottom:6px}#dgut-single-helper-panel.collapsed #btn-pause-wrap{margin-bottom:0;margin-top:8px}#dgut-single-helper-panel.collapsed .dgut-btn-primary{height:30px;font-size:12px}.dgut-panel-body{padding:16px}#timer-display{font-weight:800;color:#fff;font-size:36px;font-variant-numeric:tabular-nums;letter-spacing:2px;line-height:1;text-align:center;margin:4px 0 9px;text-shadow:0 2px 16px rgba(10,132,255,.35)}#meter-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 7px;padding:0 1px}#reader-status{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.6);min-width:0}#status-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#ffcc80;box-shadow:0 0 6px rgba(255,204,128,.5)}#status-dot.active{background:#34c759;box-shadow:0 0 6px #34c759;animation:dgut-pulse 2s infinite}@keyframes dgut-pulse{0%,100%{opacity:1}50%{opacity:.5}}#progress-text{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.3px;flex-shrink:0;font-variant-numeric:tabular-nums}#progress-bar-wrap{position:relative;height:6px;background:rgba(255,255,255,.08);border-radius:99px;margin:0 0 14px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.35)}#progress-bar-fill{height:100%;background:linear-gradient(90deg,#0a84ff,#34c759);border-radius:99px;transition:width .6s cubic-bezier(.34,1.56,.64,1);box-shadow:0 0 10px rgba(52,199,89,.45)}#book-name-display{font-size:11px;color:rgba(255,255,255,.62);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;margin-bottom:14px;padding:6px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:8px}#btn-pause-wrap{margin-bottom:14px}.dgut-btn{border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;justify-content:center;outline:0}.dgut-btn:hover{filter:brightness(1.08)}.dgut-btn:active{transform:scale(.97)}.dgut-btn-primary{color:#fff;width:100%;height:38px;font-size:14px;font-weight:700;letter-spacing:.5px;background:linear-gradient(135deg,#0a84ff,#34c759);box-shadow:0 6px 16px rgba(10,132,255,.3)}.dgut-btn-ghost{color:rgba(255,255,255,.85);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;height:28px;padding:0 14px;font-size:11px;font-weight:500}.dgut-btn-ghost:hover{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.2)}#auto-row,#server-row{display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,.5)}#auto-row{margin-bottom:10px}#server-row{margin-bottom:12px}#server-row #server-time-display{flex:1;min-width:0}#auto-row .row-label{color:rgba(255,255,255,.45);font-size:11px;flex-shrink:0}#auto-row .row-unit{font-size:11px;color:rgba(255,255,255,.4);margin-right:auto}#reader-sec{width:46px;height:28px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;text-align:center;padding:3px;font-size:12px;font-variant-numeric:tabular-nums;outline:0;transition:border-color .15s}#reader-sec:focus{border-color:#007aff}#dgut-log-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:8px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07)}#dgut-log-title{font-size:10px;color:rgba(255,255,255,.42);text-transform:uppercase;letter-spacing:.8px;font-weight:700}#dgut-log-toggle{font-size:9px;color:rgba(255,255,255,.3)}#dgut-log-container{height:96px;overflow-y:auto;overflow-x:hidden;background:rgba(0,0,0,.28);border-radius:8px;padding:6px!important;font-size:10px;line-height:1.5;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent;transition:height .25s ease,opacity .25s ease,padding .25s ease}#dgut-log-container.collapsed{height:0;padding:0;opacity:0;overflow:hidden}#dgut-log-container::-webkit-scrollbar{width:5px}#dgut-log-container::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}#dgut-log-container::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.22)}.dgut-log-line{position:relative;display:flex;gap:7px;align-items:flex-start;padding:2px 6px 2px 16px!important;border-radius:5px;line-height:1.5;color:rgba(255,255,255,.62);transition:background .12s}.dgut-log-line+.dgut-log-line{margin-top:1px}.dgut-log-line:hover{background:rgba(255,255,255,.05)}.dgut-log-line::before{content:"";position:absolute;left:6px;top:7px;width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.22)}.dgut-log-line.ok::before{background:#34c759;box-shadow:0 0 4px rgba(52,199,89,.5)}.dgut-log-line.ok .dgut-log-msg{color:#7ee2a0}.dgut-log-line.nav::before{background:#0a84ff;box-shadow:0 0 4px rgba(10,132,255,.5)}.dgut-log-line.nav .dgut-log-msg{color:#74bbff}.dgut-log-line.warn::before{background:#ff9f0a;box-shadow:0 0 4px rgba(255,159,10,.5)}.dgut-log-line.warn .dgut-log-msg{color:#ffc673}.dgut-log-time{flex-shrink:0;color:rgba(255,255,255,.3);font-family:Consolas,"SF Mono",monospace;font-variant-numeric:tabular-nums;letter-spacing:-.2px}.dgut-log-msg{flex:1;min-width:0;word-break:break-word;overflow-wrap:anywhere}'
+            /* 日志圆点 padding 上的 !important 用于抵御宿主页面 CSS reset（勿删）；模板字符串内不可出现反引号和 ${。 */
+            textContent: `
+                #dgut-single-helper-panel{box-sizing:border-box;background:rgba(28,28,30,.82);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);color:#e5e5e7;padding:0;border-radius:16px;position:fixed;z-index:100000;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;width:300px;max-width:calc(100vw - 32px);box-shadow:0 12px 40px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.08);user-select:none;overflow:hidden}
+                #dgut-single-helper-panel *{box-sizing:border-box}
+                #dgut-drag-handle{cursor:move;padding:11px 14px;background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;gap:8px}
+                #dgut-title-wrap{display:flex;align-items:center;gap:7px;min-width:0}
+                #dgut-brand-dot{width:7px;height:7px;border-radius:50%;background:linear-gradient(135deg,#0a84ff,#34c759);box-shadow:0 0 7px rgba(52,199,89,.6);flex-shrink:0}
+                #dgut-drag-handle h4{margin:0;background:linear-gradient(90deg,#0a84ff,#34c759);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:12px;font-weight:800;letter-spacing:.3px;white-space:nowrap}
+                #dgut-collapse-btn{cursor:pointer;font-size:14px;font-weight:700;color:rgba(255,255,255,.4);width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:background .15s,color .15s}
+                #dgut-collapse-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+                #dgut-single-helper-panel.collapsed{width:210px}
+                #dgut-single-helper-panel.collapsed .dgut-panel-body>:not(#timer-display):not(#progress-bar-wrap):not(#btn-pause-wrap):not(#meter-row){display:none}
+                /* 日志折叠后清零底部内边距不在这里做，改由 JS 写行内值；此处只管默认 16px 与面板折叠态的 12px。 */
+                .dgut-panel-body{padding:16px}
+                #dgut-single-helper-panel.collapsed .dgut-panel-body{padding:12px}
+                /* 折叠态时间下面给 9px（与展开态同值）才和上方 12px + 行盒约 4px 对称；进度条到按钮的间距由 #progress-bar-wrap 决定，别再给 btn-pause-wrap 加 margin-top，会被外边距折叠吃掉。 */
+                #dgut-single-helper-panel.collapsed #timer-display{font-size:28px;margin:0 0 9px}
+                #dgut-single-helper-panel.collapsed #meter-row{margin-bottom:7px}
+                #dgut-single-helper-panel.collapsed #btn-pause-wrap{margin-bottom:0}
+                #dgut-single-helper-panel.collapsed .dgut-btn-primary{height:30px;font-size:12px}
+                #timer-display{font-weight:800;color:#fff;font-size:36px;font-variant-numeric:tabular-nums;letter-spacing:2px;line-height:1;text-align:center;margin:4px 0 9px;text-shadow:0 2px 16px rgba(10,132,255,.35)}
+                #meter-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 7px;padding:0 1px}
+                #reader-status{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.6);min-width:0}
+                #status-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+                #status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:#ffcc80;box-shadow:0 0 6px rgba(255,204,128,.5)}
+                #status-dot.active{background:#34c759;box-shadow:0 0 6px #34c759;animation:dgut-pulse 2s infinite}
+                @keyframes dgut-pulse{0%,100%{opacity:1}50%{opacity:.5}}
+                #progress-text{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.3px;flex-shrink:0;font-variant-numeric:tabular-nums}
+                #progress-bar-wrap{position:relative;height:6px;background:rgba(255,255,255,.08);border-radius:99px;margin:0 0 14px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.35)}
+                #progress-bar-fill{height:100%;background:linear-gradient(90deg,#0a84ff,#34c759);border-radius:99px;transition:width .6s cubic-bezier(.34,1.56,.64,1);box-shadow:0 0 10px rgba(52,199,89,.45)}
+                #book-name-display{font-size:11px;color:rgba(255,255,255,.62);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;margin-bottom:14px;padding:6px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:8px}
+                #btn-pause-wrap{margin-bottom:14px}
+                .dgut-btn{border:none;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s cubic-bezier(.4,0,.2,1);display:flex;align-items:center;justify-content:center;outline:0}
+                .dgut-btn:hover{filter:brightness(1.08)}
+                .dgut-btn:active{transform:scale(.97)}
+                .dgut-btn-primary{color:#fff;width:100%;height:38px;font-size:14px;font-weight:700;letter-spacing:.5px;background:linear-gradient(135deg,#0a84ff,#34c759);box-shadow:0 6px 16px rgba(10,132,255,.3)}
+                .dgut-btn-ghost{color:rgba(255,255,255,.85);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;height:28px;padding:0 14px;font-size:11px;font-weight:500}
+                .dgut-btn-ghost:hover{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.2)}
+                /* 「间隔 / 服务端」两行：标签→控件 8px、控件→单位 4px 的两级间距让「30 秒/页」成组；关掉原生 number 的上下箭头数字才真正居中；服务端行拆成灰标签 + 亮数值做层级。 */
+                #auto-row,#server-row{display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,.5)}
+                #auto-row{margin-bottom:10px}
+                #server-row{margin-bottom:12px}
+                #server-row #server-time-display{flex:1;min-width:0;color:rgba(255,255,255,.82);font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+                #auto-row .row-label,#server-row .row-label{color:rgba(255,255,255,.45);font-size:11px;flex-shrink:0}
+                #auto-row .row-unit{font-size:11px;color:rgba(255,255,255,.4);margin-right:auto;margin-left:-4px}
+                #reader-sec{width:42px;height:28px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.1);border-radius:8px;color:#fff;text-align:center;padding:3px 0;font-size:12px;font-variant-numeric:tabular-nums;outline:0;transition:border-color .15s;appearance:textfield;-webkit-appearance:textfield;-moz-appearance:textfield}
+                #reader-sec::-webkit-outer-spin-button,#reader-sec::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+                #reader-sec:focus{border-color:#007aff}
+                #dgut-log-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:8px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07)}
+                #dgut-log-title{font-size:10px;color:rgba(255,255,255,.42);text-transform:uppercase;letter-spacing:.8px;font-weight:700}
+                #dgut-log-toggle{font-size:9px;color:rgba(255,255,255,.3)}
+                #dgut-log-container{height:96px;overflow-y:auto;overflow-x:hidden;background:rgba(0,0,0,.28);border-radius:8px;padding:6px!important;font-size:10px;line-height:1.5;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent;transition:height .25s ease,opacity .25s ease,padding .25s ease}
+                #dgut-log-container.collapsed{height:0;padding:0;opacity:0;overflow:hidden}
+                #dgut-log-container::-webkit-scrollbar{width:5px}
+                #dgut-log-container::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
+                #dgut-log-container::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.22)}
+                .dgut-log-line{position:relative;display:flex;gap:7px;align-items:flex-start;padding:2px 6px 2px 16px!important;border-radius:5px;line-height:1.5;color:rgba(255,255,255,.62);transition:background .12s}
+                .dgut-log-line+.dgut-log-line{margin-top:1px}
+                .dgut-log-line:hover{background:rgba(255,255,255,.05)}
+                .dgut-log-line::before{content:"";position:absolute;left:6px;top:7px;width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.22)}
+                .dgut-log-line.ok::before{background:#34c759;box-shadow:0 0 4px rgba(52,199,89,.5)}
+                .dgut-log-line.ok .dgut-log-msg{color:#7ee2a0}
+                .dgut-log-line.nav::before{background:#0a84ff;box-shadow:0 0 4px rgba(10,132,255,.5)}
+                .dgut-log-line.nav .dgut-log-msg{color:#74bbff}
+                .dgut-log-line.warn::before{background:#ff9f0a;box-shadow:0 0 4px rgba(255,159,10,.5)}
+                .dgut-log-line.warn .dgut-log-msg{color:#ffc673}
+                .dgut-log-time{flex-shrink:0;color:rgba(255,255,255,.3);font-family:Consolas,"SF Mono",monospace;font-variant-numeric:tabular-nums;letter-spacing:-.2px}
+                .dgut-log-msg{flex:1;min-width:0;word-break:break-word;overflow-wrap:anywhere}
+            `,
         }));
 
         const p = Object.assign(document.createElement('div'), {
@@ -249,7 +315,7 @@
     <button id="btn-apply-reader" class="dgut-btn dgut-btn-ghost">保存</button>
   </div>
   <div id="server-row">
-    <span id="server-time-display">服务端: --</span>
+    <span class="row-label">服务端</span><span id="server-time-display">--</span>
     <button id="btn-sync-server" class="dgut-btn dgut-btn-ghost">同步</button>
   </div>
   <div id="dgut-log-header">
@@ -503,18 +569,18 @@
             try {
                 const st = getServerSideBookTimes();
                 if (st && st[bookKey]) {
-                    sd.textContent = '服务端: ' + fmt(st[bookKey]);
+                    sd.textContent = fmt(st[bookKey]);
                     return true;
                 } else if (st) {
-                    sd.textContent = '服务端: 暂无记录';
+                    sd.textContent = '暂无记录';
                     return true;
                 } else {
-                    sd.textContent = '服务端: 获取失败';
+                    sd.textContent = '获取失败';
                     return false;
                 }
             } catch(e) {
                 console.error('[DGUT Reader] refreshServerDisplay error:', e);
-                sd.textContent = '服务端: 出错';
+                sd.textContent = '出错';
                 return false;
             }
         }
@@ -646,18 +712,38 @@
             e.stopPropagation();
             const collapsed = p.classList.toggle('collapsed');
             collapseBtn.textContent = collapsed ? '+' : '−';
+            refreshLogFolded();
         });
 
-        document.getElementById('dgut-log-header').addEventListener('click', function() {
-            const c = document.getElementById('dgut-log-container');
-            const t = document.getElementById('dgut-log-toggle');
-            if (c.classList.contains('collapsed')) {
-                c.classList.remove('collapsed');
-                t.textContent = '▼';
-            } else {
-                c.classList.add('collapsed');
-                t.textContent = '▶';
+        // 只有「日志折叠且面板展开」时才用行内样式把面板底部内边距清零，其余情况交回 CSS；不能改回纯 CSS 类实现。
+        const logToggle = document.getElementById('dgut-log-toggle');
+        const logHeader = document.getElementById('dgut-log-header');
+        const panelBody = document.querySelector('#dgut-single-helper-panel .dgut-panel-body');
+        let logFoldTimer = null;
+        function applyLogFolded() {
+            const folded = document.getElementById('dgut-log-container').classList.contains('collapsed');
+            const panelCollapsed = p.classList.contains('collapsed');
+            const active = folded && !panelCollapsed;
+            logToggle.textContent = folded ? '▶' : '▼';
+            p.classList.toggle('dgut-log-folded', active);   // 仅作状态标记，便于排查
+            if (panelBody) {
+                if (active) panelBody.style.setProperty('padding-bottom', '0px', 'important');
+                else panelBody.style.removeProperty('padding-bottom');
             }
+        }
+        // 面板折叠/展开后重新判定：先清掉行内内边距，等过渡结束后再按真实状态决定是否加回。
+        function refreshLogFolded() {
+            if (logFoldTimer) { clearTimeout(logFoldTimer); logFoldTimer = null; }
+            p.classList.remove('dgut-log-folded');
+            if (panelBody) panelBody.style.removeProperty('padding-bottom');
+            logFoldTimer = setTimeout(function() { logFoldTimer = null; applyLogFolded(); }, 300);
+        }
+        logHeader.addEventListener('click', function() {
+            const c = document.getElementById('dgut-log-container');
+            c.classList.toggle('collapsed');
+            applyLogFolded();
+            // 若正在等面板过渡结束，计时结束后会按真实状态重新判定，这里无需额外处理
+            if (logFoldTimer) refreshLogFolded();
         });
 
         updateTimerDisplay(accumulated);
