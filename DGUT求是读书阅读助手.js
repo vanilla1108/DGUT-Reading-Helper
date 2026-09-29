@@ -134,8 +134,8 @@
         return result;
     }
 
-    function syncServerTime(bookKey, accumulated, logFn) {
-        const serverTimes = getServerSideBookTimes();
+    function syncServerTime(bookKey, accumulated, logFn, pre) {
+        const serverTimes = pre !== undefined ? pre : getServerSideBookTimes();
         if (!serverTimes) return accumulated;
         const records = loadRecords();
         let updated = false;
@@ -233,7 +233,7 @@
                 /* 日志折叠后清零底部内边距不在这里做，改由 JS 写行内值；此处只管默认 16px 与面板折叠态的 12px。 */
                 .dgut-panel-body{padding:16px}
                 #dgut-single-helper-panel.collapsed .dgut-panel-body{padding:12px}
-                /* 折叠态时间下面给 9px（与展开态同值）才和上方 12px + 行盒约 4px 对称；进度条到按钮的间距由 #progress-bar-wrap 决定，别再给 btn-pause-wrap 加 margin-top，会被外边距折叠吃掉。 */
+                /* 折叠态：时间下 9px、状态行下 7px；进度条到按钮的间距只由 #progress-bar-wrap 给，别再加 btn-pause-wrap 的 margin-top（会被外边距折叠吃掉）。 */
                 #dgut-single-helper-panel.collapsed #timer-display{font-size:28px;margin:0 0 9px}
                 #dgut-single-helper-panel.collapsed #meter-row{margin-bottom:7px}
                 #dgut-single-helper-panel.collapsed #btn-pause-wrap{margin-bottom:0}
@@ -256,7 +256,7 @@
                 .dgut-btn-primary{color:#fff;width:100%;height:38px;font-size:14px;font-weight:700;letter-spacing:.5px;background:linear-gradient(135deg,#0a84ff,#34c759);box-shadow:0 6px 16px rgba(10,132,255,.3)}
                 .dgut-btn-ghost{color:rgba(255,255,255,.85);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:8px;height:28px;padding:0 14px;font-size:11px;font-weight:500}
                 .dgut-btn-ghost:hover{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.2)}
-                /* 「间隔 / 服务端」两行：标签→控件 8px、控件→单位 4px 的两级间距让「30 秒/页」成组；关掉原生 number 的上下箭头数字才真正居中；服务端行拆成灰标签 + 亮数值做层级。 */
+                /* 「间隔 / 服务端」两行：标签→控件 8px、控件→单位 4px；关掉原生 number 箭头数字才真正居中；服务端行用灰标签 + 亮数值分主次。 */
                 #auto-row,#server-row{display:flex;align-items:center;gap:8px;font-size:11px;color:rgba(255,255,255,.5)}
                 #auto-row{margin-bottom:10px}
                 #server-row{margin-bottom:12px}
@@ -341,7 +341,7 @@
             if (dot) { dot.style.background = c || '#ffcc80'; dot.className = c === '#34c759' ? 'active' : ''; }
         }
         function logType(msg) {
-            if (/失败|错误|出错|未收到|无法|异常|未满/.test(msg)) return 'warn';
+            if (/失败|错误|出错|未收到|未取到|无法|异常|未满/.test(msg)) return 'warn';
             if (/已满4h|同步|存档|读完|启动|握手|连接|最新|已设为/.test(msg)) return 'ok';
             if (/翻页|切换|下一页|下一节|下一章|下一本|回到第一页|停留|留在/.test(msg)) return 'nav';
             return '';
@@ -461,6 +461,12 @@
                 setBookTime(bookKey, getTotal());
                 bookKey = currentKey;
                 accumulated = getBookTime(bookKey);
+                // 切书时立即与服务端对齐，本地记录为空时也能从服务端时长开始计时
+                const syncedAcc = syncServerTime(bookKey, accumulated, log);
+                if (syncedAcc !== accumulated) {
+                    accumulated = syncedAcc;
+                    lastServerSync = Date.now();
+                }
                 sessionStart = Date.now();
                 lastSave = accumulated;
                 flatListDirty = true;
@@ -526,11 +532,17 @@
             updateTimerDisplay(total);
             if (total - lastSave >= SAVE_INTERVAL) persist();
             if (Date.now() - lastServerSync >= SYNC_INTERVAL * 1000) {
-                const newAcc = syncServerTime(bookKey, accumulated, log);
-                if (newAcc !== accumulated) { sessionStart = Date.now(); lastSave = newAcc; }
-                accumulated = newAcc;
-                lastServerSync = Date.now();
-                refreshServerDisplay();
+                // 读一次喂给两处用；读不到服务端数据时 15 秒后重试，不占满 5 分钟窗口
+                const st = getServerSideBookTimes();
+                if (st) {
+                    const newAcc = syncServerTime(bookKey, accumulated, log, st);
+                    if (newAcc !== accumulated) { sessionStart = Date.now(); lastSave = newAcc; }
+                    accumulated = newAcc;
+                    lastServerSync = Date.now();
+                } else {
+                    lastServerSync = Date.now() - (SYNC_INTERVAL - 15) * 1000;
+                }
+                refreshServerDisplay(st);
             }
         }
 
@@ -565,9 +577,9 @@
             log('暂停阅读');
         }
 
-        function refreshServerDisplay() {
+        function refreshServerDisplay(pre) {
             try {
-                const st = getServerSideBookTimes();
+                const st = pre !== undefined ? pre : getServerSideBookTimes();
                 if (st && st[bookKey]) {
                     sd.textContent = fmt(st[bookKey]);
                     return true;
@@ -770,20 +782,23 @@
         setupAntiDetect();
         let startupSyncRetries = 0;
         function startupSync() {
-            const newAcc = syncServerTime(bookKey, accumulated, null);
+            // 判据用「当前书目的服务端时长是否到手」，不能用「服务端有没有返回数据」：数据只到一半时会误判为已同步
+            const st = getServerSideBookTimes();
+            const newAcc = syncServerTime(bookKey, accumulated, null, st);
             if (newAcc !== accumulated || startupSyncRetries === 0) {
                 if (newAcc !== accumulated) { sessionStart = Date.now(); lastSave = newAcc; }
                 accumulated = newAcc;
                 lastServerSync = Date.now();
                 updateTimerDisplay(accumulated);
             }
-            const hasServerData = refreshServerDisplay();
-            if (!hasServerData && startupSyncRetries < 10) {
+            refreshServerDisplay(st);
+            const gotBookTime = !!(st && st[bookKey]);
+            if (!gotBookTime && startupSyncRetries < 10) {
                 startupSyncRetries++;
                 setTimeout(startupSync, 3000);
-            } else if (hasServerData) {
-                log('服务端时长已同步');
+                return;
             }
+            log(gotBookTime ? '服务端时长已同步' : '未取到当前书目的服务端时长，稍后按 5 分钟周期重试');
         }
         setTimeout(startupSync, 3000);
         window.addEventListener('load', () => { setTimeout(syncReader,1200); setTimeout(syncReader,2600); }, { once: true });
