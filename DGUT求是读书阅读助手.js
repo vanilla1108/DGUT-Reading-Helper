@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         DGUT求是读书阅读助手
+// @name         DGUT求是读书-自动阅读助手
 // @namespace    https://github.com/vanilla1108/DGUT-Reading-Helper
 // @version      3.3.1
 // @license MIT
