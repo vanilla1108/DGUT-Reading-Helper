@@ -370,6 +370,29 @@
         }
         function getTotal() { return accumulated + Math.floor((Date.now() - sessionStart) / 1000); }
         function persist() { const t = getTotal(); setBookTime(bookKey, t); lastSave = t; log('存档：' + fmt(t)); }
+        // 本地满 4h 且服务端也满才算读完；服务端值 15 分钟无变化视为快照不刷新，退回只看本地
+        const SERVER_STALE_SEC = 900;
+        let lagSt = null, lagReadAt = 0, lagSince = 0, lagVal = 0, lagGaveUp = false;
+        function resetServerLag() { lagReadAt = 0; lagSince = 0; lagVal = 0; lagGaveUp = false; }
+        function bookDone() {
+            if (getTotal() < MIN_BOOK_SEC) return false;
+            const now = Date.now();
+            if (now - lagReadAt >= 10000) { lagSt = getServerSideBookTimes(); lagReadAt = now; }
+            if (!lagSt || lagGaveUp) return true;
+            const sv = lagSt[bookKey] || 0;
+            if (sv >= MIN_BOOK_SEC) return true;
+            if (!lagSince) {
+                log('本地已满4h，但服务端仅 ' + fmt(sv) + '，未满，留在本书继续读');
+                lagSince = now; lagVal = sv;
+            } else if (sv > lagVal) {
+                lagSince = now; lagVal = sv;
+            } else if (now - lagSince >= SERVER_STALE_SEC * 1000) {
+                lagGaveUp = true;
+                log('服务端时长 15 分钟无变化，无法确认进度，改按本地时长判定');
+                return true;
+            }
+            return false;
+        }
 
         function syncReader(targetWin) {
             saveCfg();
@@ -427,7 +450,7 @@
             if (rect.width === 0 && rect.height === 0) return false;
             const btns = modal.querySelectorAll('.stat-next .btn-hollow');
             if (btns.length === 0) return false;
-            if (getTotal() < MIN_BOOK_SEC) {
+            if (!bookDone()) {
                 btns[0].click();
                 pageStartTime = Date.now();
                 log('弹窗：未满4h，留在本章');
@@ -471,6 +494,7 @@
                 lastSave = accumulated;
                 flatListDirty = true;
                 holdPageId = null;
+                resetServerLag();
                 const dispName = getBookDisplayName();
                 bd.textContent = dispName;
                 bd.title = bookKey;
@@ -496,7 +520,7 @@
                     bd.textContent = dispName;
                     bd.title = bookKey;
                 }
-                if (getTotal() >= MIN_BOOK_SEC) {
+                if (bookDone()) {
                     if(currentPageId && Date.now() - pageStartTime >= NAV_SEC * 1000) {
                         const next = vm.nextPageName?.();
                         const currentIdx = findPageIndex(flatList, currentPageId);
